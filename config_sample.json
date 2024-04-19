@@ -1,0 +1,13 @@
+{
+	"TIMEZONE": "Asia/Kolkata",
+	"JOBS": {
+		"demo1": {
+			"type": "cron",
+			"schedule": "* * * * * *",
+			"plugin": "demo",
+			"params": {
+				"test1": "hello world"
+			}
+		}
+	}
+}
