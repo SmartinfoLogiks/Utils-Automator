@@ -76,7 +76,9 @@ _.each(CONFIG.JOBS, function(conf, k) {
 
 //Process Cleanup
 function exitHandler(options, exitCode) {
+    if(options=="exit") return;
     console.log("\n\x1b[34m%s\x1b[0m","Automator Shutting Down @ "+moment().format());
+	process.exit(0);
 }
 
 [`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
