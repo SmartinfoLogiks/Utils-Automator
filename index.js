@@ -21,6 +21,30 @@ console.log("\x1b[34m%s\x1b[0m","\nAutomator Initialization Started @ "+moment()
 process.env.START_TIME = moment().format();
 process.env.ROOT_PATH  = __dirname;
 
+global.getAutomatorObject = function() {
+	return {
+		"ME": this,
+		"LOADED_PLUGINS": LOADED_PLUGINS,
+		"ACTIVE_JOBS": ACTIVE_JOBS
+	};
+}
+
+//Initialize Helpers
+fs.readdirSync('./helpers/').forEach(function(file) {
+        if ((file.indexOf(".js") > 0 && (file.indexOf(".js") + 3 == file.length))) {
+        	var className = file.toLowerCase().replace(".js", "").toUpperCase();
+            var filePath = path.resolve('./helpers/' + file);
+
+            const tempObj = require(filePath);
+            global[className] = tempObj;
+            // console.log(">>>", className, filePath, LOADED_PLUGINS);
+
+            if(tempObj.initialize!=null) {
+                tempObj.initialize();
+            }
+        }
+    });
+
 //Initialize Plugins
 fs.readdirSync('./plugins/').forEach(function(file) {
         if ((file.indexOf(".js") > 0 && (file.indexOf(".js") + 3 == file.length))) {
@@ -68,6 +92,23 @@ _.each(CONFIG.JOBS, function(conf, k) {
 				"status": "active",
 			};
 			break;
+		case "instant":
+            LOADED_PLUGINS[conf.plugin.toUpperCase()].runJob(conf.params);
+            ACTIVE_JOBS[k] = {
+                "opts": conf,
+                "job": null,
+                "started": moment().format(),
+                "status": "inactive",
+            };
+            break;
+        case "webhook":
+        	ACTIVE_JOBS[k] = {
+                "opts": conf,
+                "job": null,
+                "started": moment().format(),
+                "status": "inactive",
+            };
+        	break;
 		default:
 			console.log("\x1b[31m%s\x1b[0m","\nAutomator Not Supported for Type -",conf.type);
 	}
@@ -76,7 +117,9 @@ _.each(CONFIG.JOBS, function(conf, k) {
 
 //Process Cleanup
 function exitHandler(options, exitCode) {
-    console.log("\n\x1b[34m%s\x1b[0m","Automator Shutting Down @ "+moment().format());
+    if(options=="exit") return;
+    console.log("\n\x1b[34m%s\x1b[0m","AutomatorX Shutting Down @ "+moment().format());
+	process.exit(0);
 }
 
 [`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
@@ -86,7 +129,6 @@ function exitHandler(options, exitCode) {
 process.on('uncaughtException', function(err) {
     console.error(err.name,err.message,err.stack);
 });
-
 
 console.log("\n\x1b[34m%s\x1b[0m","Automator Initialization Completed @ "+moment().format());
 //console.log(`Server Started @ `+moment().format()+` and can be accessed on ${config.host}:${config.port}/`);
