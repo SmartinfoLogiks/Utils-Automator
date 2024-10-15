@@ -54,6 +54,8 @@ fs.readdirSync('./plugins/').forEach(function(file) {
             LOADED_PLUGINS[className] = require(filePath);
             // console.log(">>>", className, filePath, LOADED_PLUGINS);
 
+            LOADED_PLUGINS[className]._PLUGINNAME = className;
+
             if(LOADED_PLUGINS[className].initialize!=null) {
                 LOADED_PLUGINS[className].initialize();
             }
